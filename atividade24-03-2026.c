@@ -1,143 +1,187 @@
 /******************************************************************************
-
-    Criar uma Matrix M x N. M e N sC#o escolhidas pelo usuC!rio.
-
-    Crie um algoritimo de ordenaC'C#o nC#o cresente e nC#o decresente
-    e mostr e o tempo de excuC'C#o.
-
-    Contrua a melhor C!vore de busca com os elementos da metriz.
-
-*******************************************************************************/
-
+ * Cria uma Matriz M x N com valores aleatórios.
+ * Ordena em ordem CRESCENTE e DECRESCENTE (Bubble Sort).
+ * Exibe o tempo de execução de cada ordenação.
+ * Constrói a melhor árvore de busca (BST balanceada) com os elementos.
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-// ============= Bubble Sort =================
-void bobble_short (int a[], int tamanho) {
-	for (int i = 0 ; i < tamanho; i++) {
 
-		for (int j = 0; j < (tamanho -1); j++) {
-
-			if (a[j] > a[j + 1]) {
-				int temp = a[j];
-				a[j] = a[j + 1];
-				a[j + 1] = temp;
-
-			}
-		}
-	}
+// ====================== BUBBLE SORT CRESCENTE ======================
+void bubble_sort_asc(int a[], int tamanho) {
+    for (int i = 0; i < tamanho - 1; i++) {
+        int trocou = 0;
+        for (int j = 0; j < tamanho - 1 - i; j++) {
+            if (a[j] > a[j + 1]) {
+                int temp = a[j];
+                a[j]     = a[j + 1];
+                a[j + 1] = temp;
+                trocou   = 1;
+            }
+        }
+        if (!trocou) break; // early exit se já ordenado
+    }
 }
 
-// ================= CRVORE =================
+// ====================== BUBBLE SORT DECRESCENTE ======================
+void bubble_sort_desc(int a[], int tamanho) {
+    for (int i = 0; i < tamanho - 1; i++) {
+        int trocou = 0;
+        for (int j = 0; j < tamanho - 1 - i; j++) {
+            if (a[j] < a[j + 1]) {   // inverte a comparação
+                int temp = a[j];
+                a[j]     = a[j + 1];
+                a[j + 1] = temp;
+                trocou   = 1;
+            }
+        }
+        if (!trocou) break;
+    }
+}
+
+// ====================== ÁRVORE BINÁRIA ======================
 typedef struct Node {
-	int value;
-	struct Node *left;
-	struct Node *right;
+    int value;
+    struct Node *left;
+    struct Node *right;
 } Node;
 
-// cria nC3
 Node* create_node(int value) {
-	Node* n = (Node*) malloc(sizeof(Node));
-	n->value = value;
-	n->left = NULL;
-	n->right = NULL;
-	return n;
+    Node* n  = (Node*) malloc(sizeof(Node));
+    n->value = value;
+    n->left  = NULL;
+    n->right = NULL;
+    return n;
 }
 
-// cria C!rvore balanceada a partir de vetor ordenado
+// Constrói BST balanceada a partir do vetor ordenado (crescente)
 Node* build_balanced_tree(int v[], int start, int end) {
-	if(start > end) return NULL;
-
-	int mid = (start + end) / 2;
-
-	Node* root = create_node(v[mid]);
-
-	root->left = build_balanced_tree(v, start, mid - 1);
-	root->right = build_balanced_tree(v, mid + 1, end);
-
-	return root;
+    if (start > end) return NULL;
+    int mid       = (start + end) / 2;
+    Node* root    = create_node(v[mid]);
+    root->left    = build_balanced_tree(v, start, mid - 1);
+    root->right   = build_balanced_tree(v, mid + 1, end);
+    return root;
 }
 
+// Calcula a altura da árvore
+int height(Node* root) {
+    if (!root) return 0;
+    int le = height(root->left);
+    int ri = height(root->right);
+    return 1 + (le > ri ? le : ri);
+}
 
-// percurso em ordem
+// Percurso em ordem (in-order): exibe os valores ordenados
 void inorder(Node* root) {
-	if(root) {
-		inorder(root->left);
-		printf("%d ", root->value);
-		inorder(root->right);
-	}
+    if (root) {
+        inorder(root->left);
+        printf("%d ", root->value);
+        inorder(root->right);
+    }
 }
 
-int main()
-{
+// Libera a memória da árvore
+void free_tree(Node* root) {
+    if (root) {
+        free_tree(root->left);
+        free_tree(root->right);
+        free(root);
+    }
+}
 
-	int M, N;
+// ====================== EXIBIÇÃO DA MATRIZ ======================
+void print_matrix(int M, int N, int matrix[M][N]) {
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < N; j++)
+            printf("%3d ", matrix[i][j]);
+        printf("\n");
+    }
+}
 
-	srand(time(NULL));
+// Copia vetor de volta para a matriz
+void vec_to_matrix(int M, int N, int matrix[M][N], int v[]) {
+    int k = 0;
+    for (int i = 0; i < M; i++)
+        for (int j = 0; j < N; j++)
+            matrix[i][j] = v[k++];
+}
 
-	printf("Qual o valor de M? \n M: ");
-	scanf("%d", &M);
+// ====================== MAIN ======================
+int main() {
+    int M, N;
+    srand((unsigned int) time(NULL));
 
-	printf("Qual o valor de M? \n N: ");
-	scanf("%d", &N);
+    printf("=== Matriz com Ordenação e Árvore Balanceada ===\n\n");
 
-	printf("Definido Matrix %d x %d\n", M,N);
+    printf("Qual o valor de M (linhas)? ");
+    scanf("%d", &M);
+    printf("Qual o valor de N (colunas)? ");
+    scanf("%d", &N);
 
-	int matrix[M][N];
-	int v[M * N];
+    if (M <= 0 || N <= 0) {
+        printf("Erro: M e N devem ser positivos.\n");
+        return 1;
+    }
 
-	// Prenche altomaticamente a matrix
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++) {
-			matrix[i][j] = rand() % 51; // 0 atC) 20
-		}
-	}
+    int tamanho = M * N;
+    int matrix[M][N];
+    int v_asc[tamanho];
+    int v_desc[tamanho];
 
-	// Exibe matriz
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++) {
-			printf("%d|", matrix[i][j]);
-		}
-		printf("\n");
-	}
+    // ---- Preenche a matriz aleatoriamente ----
+    printf("\nMatriz %d x %d gerada aleatoriamente:\n", M, N);
+    for (int i = 0; i < M; i++)
+        for (int j = 0; j < N; j++)
+            matrix[i][j] = rand() % 51;   // valores de 0 a 50
 
-	// Tranforma a matrix em vetor
-	int k = 0;
-	for(int i = 0; i < M; i++)
-		for(int j = 0; j < N; j++)
-			v[k++] = matrix[i][j];
+    print_matrix(M, N, matrix);
 
+    // ---- Converte para vetores ----
+    int k = 0;
+    for (int i = 0; i < M; i++)
+        for (int j = 0; j < N; j++) {
+            v_asc[k]  = matrix[i][j];
+            v_desc[k] = matrix[i][j];
+            k++;
+        }
 
-	// medir tempo
-	clock_t inicio = clock();
+    // ---- Ordenação CRESCENTE ----
+    clock_t ini = clock();
+    bubble_sort_asc(v_asc, tamanho);
+    clock_t fim = clock();
+    double tempo_asc = (double)(fim - ini) / CLOCKS_PER_SEC;
 
-	// Ordena o Array
-	bobble_short(v,M*N);
+    vec_to_matrix(M, N, matrix, v_asc);
+    printf("\nOrdenação CRESCENTE (não decrescente):\n");
+    print_matrix(M, N, matrix);
+    printf("Tempo de execução (crescente): %.6f segundos\n", tempo_asc);
 
-	clock_t fim = clock();
+    // ---- Ordenação DECRESCENTE ----
+    ini = clock();
+    bubble_sort_desc(v_desc, tamanho);
+    fim = clock();
+    double tempo_desc = (double)(fim - ini) / CLOCKS_PER_SEC;
 
-	double tempo = (double)(fim - inicio) / CLOCKS_PER_SEC;
+    vec_to_matrix(M, N, matrix, v_desc);
+    printf("\nOrdenação DECRESCENTE (não crescente):\n");
+    print_matrix(M, N, matrix);
+    printf("Tempo de execução (decrescente): %.6f segundos\n", tempo_desc);
 
-	// Volta para uma Matrix
-	k=0;
-	for(int i = 0; i < M; i++)
-		for (int j = 0; j < N; j++)
-			matrix[i][j] = v[k++];
+    // ---- Árvore Balanceada (usa vetor crescente) ----
+    Node* root = build_balanced_tree(v_asc, 0, tamanho - 1);
 
-	// Printa o Matrix
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++)
-			printf("%d ", matrix[i][j]);
-		printf("\n");
-	}
+    printf("\n=== Árvore BST Balanceada ===\n");
+    printf("Percurso em ordem (in-order):\n");
+    inorder(root);
+    printf("\nAltura da árvore: %d\n", height(root));
 
-	// construir C!rvore balanceada
-	Node* root = build_balanced_tree(v, 0, M * N - 1);
+    free_tree(root);
 
-	printf("\nArvore (inorder):\n");
-	inorder(root);
+    printf("\n=== Resumo de Tempos ===\n");
+    printf("Bubble Sort crescente:   %.6f s\n", tempo_asc);
+    printf("Bubble Sort decrescente: %.6f s\n", tempo_desc);
 
-	// tempo
-	printf("\n\nTempo de execucao: %f segundos\n", tempo);
-
+    return 0;
 }
